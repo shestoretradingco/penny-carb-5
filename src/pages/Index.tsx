@@ -1,12 +1,47 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from 'react';
+import AppHeader from '@/components/customer/AppHeader';
+import BannerCarousel from '@/components/customer/BannerCarousel';
+import ServiceCards from '@/components/customer/ServiceCards';
+import PopularItems from '@/components/customer/PopularItems';
+import CartButton from '@/components/customer/CartButton';
+import BottomNav from '@/components/customer/BottomNav';
 
-const Index = () => {
+const Index: React.FC = () => {
+  const handleSearch = (query: string) => {
+    // Navigate to search page with query
+    console.log('Search:', query);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background pb-20">
+      <AppHeader onSearch={handleSearch} />
+      
+      <main>
+        {/* Banner Carousel */}
+        <BannerCarousel />
+        
+        {/* Service Type Cards */}
+        <ServiceCards />
+        
+        {/* Popular Items by Service Type */}
+        <PopularItems 
+          serviceType="indoor_events" 
+          title="🎉 Popular for Events" 
+        />
+        
+        <PopularItems 
+          serviceType="cloud_kitchen" 
+          title="👨‍🍳 Most Ordered from Cloud Kitchen" 
+        />
+        
+        <PopularItems 
+          serviceType="homemade" 
+          title="🏠 Homemade Favorites" 
+        />
+      </main>
+
+      <CartButton />
+      <BottomNav />
     </div>
   );
 };
