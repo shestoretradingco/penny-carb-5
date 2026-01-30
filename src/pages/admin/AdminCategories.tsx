@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Select, 
   SelectContent, 
@@ -55,7 +56,7 @@ const AdminCategories: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<FoodCategory | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    service_type: 'cloud_kitchen' as ServiceType,
+    service_types: [] as string[],
     image_url: '' as string | null,
     is_active: true,
     display_order: 0,
@@ -120,7 +121,7 @@ const AdminCategories: React.FC = () => {
       setEditingCategory(category);
       setFormData({
         name: category.name,
-        service_type: category.service_type,
+        service_types: category.service_types || [],
         image_url: category.image_url,
         is_active: category.is_active,
         display_order: category.display_order,
@@ -129,7 +130,7 @@ const AdminCategories: React.FC = () => {
       setEditingCategory(null);
       setFormData({
         name: '',
-        service_type: 'cloud_kitchen',
+        service_types: [],
         image_url: null,
         is_active: true,
         display_order: categories.length,
@@ -149,9 +150,14 @@ const AdminCategories: React.FC = () => {
     }
 
     try {
+      const serviceType = formData.service_types.length === 1 
+        ? formData.service_types[0] as ServiceType 
+        : null;
+      
       const categoryData = {
         name: formData.name,
-        service_type: formData.service_type,
+        service_types: formData.service_types,
+        service_type: serviceType,
         image_url: formData.image_url,
         is_active: formData.is_active,
         display_order: formData.display_order,
@@ -212,9 +218,25 @@ const AdminCategories: React.FC = () => {
   // Filter categories
   const filteredCategories = categories.filter(cat => {
     const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterServiceType === 'all' || cat.service_type === filterServiceType;
+    const isCommon = !cat.service_types || cat.service_types.length === 0;
+    const matchesType = filterServiceType === 'all' || isCommon || cat.service_types?.includes(filterServiceType);
     return matchesSearch && matchesType;
   });
+
+  const toggleServiceType = (type: string) => {
+    setFormData(prev => ({
+      ...prev,
+      service_types: prev.service_types.includes(type)
+        ? prev.service_types.filter(t => t !== type)
+        : [...prev.service_types, type]
+    }));
+  };
+
+  const getServiceTypesLabel = (types: string[] | undefined) => {
+    if (!types || types.length === 0) return 'Common (All Services)';
+    if (types.length === 3) return 'All Services';
+    return types.map(t => t.replace('_', ' ')).join(', ');
+  };
 
   if (!isAdmin) {
     return (
@@ -303,8 +325,8 @@ const AdminCategories: React.FC = () => {
 
                   <div className="min-w-0 flex-1">
                     <h3 className="font-medium truncate">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {category.service_type.replace('_', ' ')}
+                    <p className="text-sm text-muted-foreground capitalize">
+                      {getServiceTypesLabel(category.service_types)}
                     </p>
                     <Badge 
                       variant={category.is_active ? 'default' : 'secondary'}
@@ -362,23 +384,25 @@ const AdminCategories: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Service Type</Label>
-              <Select 
-                value={formData.service_type} 
-                onValueChange={(v) => setFormData({ ...formData, service_type: v as ServiceType })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  {serviceTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
+            <div className="space-y-3">
+              <Label>Service Types</Label>
+              <p className="text-xs text-muted-foreground">
+                Select which services this category applies to. Leave all unchecked for a common category.
+              </p>
+              <div className="space-y-2">
+                {serviceTypes.map((type) => (
+                  <div key={type.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={type.value}
+                      checked={formData.service_types.includes(type.value)}
+                      onCheckedChange={() => toggleServiceType(type.value)}
+                    />
+                    <Label htmlFor={type.value} className="font-normal cursor-pointer">
                       {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">

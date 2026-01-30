@@ -381,7 +381,8 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
-          service_type: Database["public"]["Enums"]["service_type"]
+          service_type: Database["public"]["Enums"]["service_type"] | null
+          service_types: string[] | null
           updated_at: string
         }
         Insert: {
@@ -391,7 +392,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
-          service_type: Database["public"]["Enums"]["service_type"]
+          service_type?: Database["public"]["Enums"]["service_type"] | null
+          service_types?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -401,7 +403,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
-          service_type?: Database["public"]["Enums"]["service_type"]
+          service_type?: Database["public"]["Enums"]["service_type"] | null
+          service_types?: string[] | null
           updated_at?: string
         }
         Relationships: []

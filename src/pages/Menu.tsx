@@ -53,8 +53,8 @@ const Menu: React.FC = () => {
           supabase
             .from('food_categories')
             .select('*')
-            .eq('service_type', validServiceType)
             .eq('is_active', true)
+            .or(`service_types.cs.{${validServiceType}},service_types.eq.{}`)
             .order('display_order'),
         ]);
 

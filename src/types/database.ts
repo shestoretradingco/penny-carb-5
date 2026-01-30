@@ -49,7 +49,8 @@ export interface AdminPermissions {
 export interface FoodCategory {
   id: string;
   name: string;
-  service_type: ServiceType;
+  service_type: ServiceType | null;
+  service_types: string[];
   image_url: string | null;
   is_active: boolean;
   display_order: number;
