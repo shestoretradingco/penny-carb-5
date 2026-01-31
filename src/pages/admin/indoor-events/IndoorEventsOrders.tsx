@@ -65,8 +65,7 @@ const IndoorEventsOrders: React.FC = () => {
           event_details, delivery_address, order_type, created_at, customer_id,
           panchayat_id, ward_number, assigned_cook_id,
           event_type:event_types(id, name, icon),
-          panchayat:panchayats(name),
-          profile:profiles!orders_customer_id_fkey(name, mobile_number)
+          panchayat:panchayats(name)
         `)
         .eq('service_type', 'indoor_events')
         .order('created_at', { ascending: false });
@@ -75,9 +74,22 @@ const IndoorEventsOrders: React.FC = () => {
         query = query.eq('status', statusFilter as OrderStatus);
       }
 
-      const { data, error } = await query;
+      const { data: ordersData, error } = await query;
       if (error) throw error;
-      return data as unknown as IndoorEventOrder[];
+
+      // Fetch profiles for customer_ids
+      const customerIds = ordersData?.map((o: any) => o.customer_id).filter(Boolean) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, mobile_number')
+        .in('user_id', customerIds);
+
+      const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
+
+      return ordersData?.map((order: any) => ({
+        ...order,
+        profile: profileMap.get(order.customer_id) || null,
+      })) as IndoorEventOrder[];
     },
   });
 
