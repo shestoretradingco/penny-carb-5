@@ -15,7 +15,10 @@ import {
   LogOut,
   ArrowLeft,
   Truck,
-  ClipboardList
+  ClipboardList,
+  Tag,
+  Utensils,
+  FolderOpen
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -75,12 +78,15 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const commonUtilities = [
+    { icon: FolderOpen, label: 'Categories', path: '/admin/categories', description: 'Dish Categories' },
+    { icon: Utensils, label: 'Food Items', path: '/admin/items', description: 'Manage Dishes' },
     { icon: ChefHat, label: 'Cook Management', path: '/admin/cooks', description: 'Add & Manage Cooks' },
     { icon: Truck, label: 'Delivery Staff', path: '/admin/delivery-staff', description: 'Manage Delivery' },
     { icon: ClipboardList, label: 'Work Assignment', path: '/admin/work-assignment', description: 'Assign Orders' },
     { icon: Users, label: 'User Management', path: '/admin/users', description: 'Customers & Staff' },
     { icon: MapPin, label: 'Locations', path: '/admin/locations', description: 'Panchayats & Wards' },
     { icon: Image, label: 'Banners', path: '/admin/banners', description: 'Promotions' },
+    { icon: Tag, label: 'Special Offers', path: '/admin/special-offers', description: 'Offer Cards' },
     { icon: BarChart3, label: 'Reports', path: '/admin/reports', description: 'Analytics' },
   ];
 

@@ -49,6 +49,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminBanners from "./pages/admin/AdminBanners";
 import AdminAdmins from "./pages/admin/AdminAdmins";
 import AdminWorkAssignment from "./pages/admin/AdminWorkAssignment";
+import AdminSpecialOffers from "./pages/admin/AdminSpecialOffers";
 
 // Admin Modules
 import IndoorEventsModule from "./pages/admin/indoor-events/IndoorEventsModule";
@@ -117,6 +118,7 @@ const App = () => (
                 <Route path="/admin/delivery-staff" element={<AdminDeliveryStaff />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/banners" element={<AdminBanners />} />
+                <Route path="/admin/special-offers" element={<AdminSpecialOffers />} />
                 <Route path="/admin/admins" element={<AdminAdmins />} />
                 <Route path="/admin/work-assignment" element={<AdminWorkAssignment />} />
                 
