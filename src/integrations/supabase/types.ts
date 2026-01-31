@@ -449,6 +449,8 @@ export type Database = {
       }
       food_items: {
         Row: {
+          available_all_panchayats: boolean | null
+          available_panchayat_ids: string[] | null
           category_id: string | null
           created_at: string
           created_by: string | null
@@ -463,10 +465,13 @@ export type Database = {
           preparation_time_minutes: number | null
           price: number
           service_type: Database["public"]["Enums"]["service_type"]
+          service_types: string[] | null
           updated_at: string
           ward_number: number | null
         }
         Insert: {
+          available_all_panchayats?: boolean | null
+          available_panchayat_ids?: string[] | null
           category_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -481,10 +486,13 @@ export type Database = {
           preparation_time_minutes?: number | null
           price: number
           service_type: Database["public"]["Enums"]["service_type"]
+          service_types?: string[] | null
           updated_at?: string
           ward_number?: number | null
         }
         Update: {
+          available_all_panchayats?: boolean | null
+          available_panchayat_ids?: string[] | null
           category_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -499,6 +507,7 @@ export type Database = {
           preparation_time_minutes?: number | null
           price?: number
           service_type?: Database["public"]["Enums"]["service_type"]
+          service_types?: string[] | null
           updated_at?: string
           ward_number?: number | null
         }
