@@ -17,22 +17,34 @@ const IndoorEventsPlanning: React.FC = () => {
   const { data: requests, isLoading } = useQuery({
     queryKey: ['indoor-events-planning'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: ordersData, error } = await supabase
         .from('orders')
         .select(`
           id, order_number, status, total_amount, guest_count, event_date, 
-          event_details, delivery_address, order_type, created_at,
+          event_details, delivery_address, order_type, created_at, customer_id,
           panchayat_id, ward_number,
           event_type:event_types(id, name, icon),
-          panchayat:panchayats(name),
-          profile:profiles!orders_customer_id_fkey(name, mobile_number)
+          panchayat:panchayats(name)
         `)
         .eq('service_type', 'indoor_events')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Fetch profiles for customer_ids
+      const customerIds = ordersData?.map((o: any) => o.customer_id).filter(Boolean) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, name, mobile_number')
+        .in('user_id', customerIds);
+
+      const profileMap = new Map(profiles?.map((p: any) => [p.user_id, p]) || []);
+
+      return ordersData?.map((order: any) => ({
+        ...order,
+        profile: profileMap.get(order.customer_id) || null,
+      }));
     },
   });
 
