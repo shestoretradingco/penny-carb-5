@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarDays, Users, MapPin, Phone, Zap, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Users, MapPin, Phone, Zap, Loader2, CheckCircle, UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import EventTypeSelector from '@/components/events/EventTypeSelector';
 import QuickBookingFoodSelection from '@/components/indoor-events/QuickBookingFoodSelection';
+import PlannerStepCard from '@/components/indoor-events/PlannerStepCard';
+import StepDialog from '@/components/indoor-events/StepDialog';
 import BottomNav from '@/components/customer/BottomNav';
 import type { EventType } from '@/types/events';
 import type { FoodItem } from '@/hooks/useIndoorEventItems';
@@ -25,11 +26,14 @@ interface SelectedItem {
   quantity: number;
 }
 
+type DialogStep = 'event-type' | 'food' | 'details' | 'venue' | null;
+
 const IndoorEventsQuickBooking: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { selectedPanchayat, selectedWardNumber } = useLocation();
 
+  const [activeDialog, setActiveDialog] = useState<DialogStep>(null);
   const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [eventTime, setEventTime] = useState('');
@@ -49,6 +53,26 @@ const IndoorEventsQuickBooking: React.FC = () => {
     (sum, { item, quantity }) => sum + (item.price * quantity), 
     0
   );
+
+  const openNextStep = (currentStep: DialogStep) => {
+    const steps: DialogStep[] = ['event-type', 'food', 'details', 'venue'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex < steps.length - 1) {
+      setActiveDialog(steps[currentIndex + 1]);
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openPrevStep = (currentStep: DialogStep) => {
+    const steps: DialogStep[] = ['event-type', 'food', 'details', 'venue'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setActiveDialog(steps[currentIndex - 1]);
+    } else {
+      setActiveDialog(null);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!user) {
@@ -186,6 +210,14 @@ const IndoorEventsQuickBooking: React.FC = () => {
     }
   };
 
+  // Step completion checks
+  const isEventTypeComplete = !!selectedEventType;
+  const isFoodComplete = true; // Optional step
+  const isDetailsComplete = !!eventDate && !!contactNumber && guestCount >= 10;
+  const isVenueComplete = !!deliveryAddress.trim();
+
+  const canSubmit = isEventTypeComplete && isDetailsComplete && isVenueComplete;
+
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background pb-20">
@@ -239,148 +271,58 @@ const IndoorEventsQuickBooking: React.FC = () => {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
-        {/* Info */}
-        <Card className="border-indoor-events/30 bg-indoor-events/5">
-          <CardContent className="p-4 text-sm">
-            <p className="font-medium text-foreground mb-1">Simple & Quick</p>
-            <p className="text-muted-foreground">
-              Fill in basic details. No dish selection needed. Admin will send you a quotation.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Event Type Selection */}
-        <EventTypeSelector
-          selectedEventType={selectedEventType}
-          onSelect={setSelectedEventType}
+      <main className="container px-4 py-6 space-y-4">
+        {/* Step Cards */}
+        <PlannerStepCard
+          stepNumber={1}
+          title="Event Type"
+          description="Select occasion type"
+          icon={<CalendarDays className="h-6 w-6" />}
+          isCompleted={isEventTypeComplete}
+          isActive={activeDialog === 'event-type'}
+          summary={selectedEventType?.name}
+          onClick={() => setActiveDialog('event-type')}
         />
 
-        {/* Food Selection */}
-        <QuickBookingFoodSelection
-          selectedItems={selectedItems}
-          onItemsChange={setSelectedItems}
+        <PlannerStepCard
+          stepNumber={2}
+          title="Food Selection"
+          description="Optional - select dishes"
+          icon={<UtensilsCrossed className="h-6 w-6" />}
+          isCompleted={totalItemsCount > 0}
+          isActive={activeDialog === 'food'}
+          summary={totalItemsCount > 0 ? `${totalItemsCount} items selected` : undefined}
+          onClick={() => setActiveDialog('food')}
         />
 
-        {/* Event Details */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              Event Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Date Picker */}
-            <div className="space-y-2">
-              <Label>Event Date *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !eventDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarDays className="mr-2 h-4 w-4" />
-                    {eventDate ? format(eventDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={eventDate}
-                    onSelect={setEventDate}
-                    disabled={(date) => isBefore(date, minDate)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+        <PlannerStepCard
+          stepNumber={3}
+          title="Event Details"
+          description="Date, guests, contact"
+          icon={<Users className="h-6 w-6" />}
+          isCompleted={isDetailsComplete}
+          isActive={activeDialog === 'details'}
+          summary={eventDate ? `${format(eventDate, 'MMM d')} • ${guestCount} guests` : undefined}
+          onClick={() => setActiveDialog('details')}
+        />
 
-            {/* Event Time */}
-            <div className="space-y-2">
-              <Label>Event Time (Optional)</Label>
-              <Input
-                type="time"
-                value={eventTime}
-                onChange={(e) => setEventTime(e.target.value)}
-              />
-            </div>
-
-            {/* Guest Count */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Number of Guests *
-              </Label>
-              <Input
-                type="number"
-                min={10}
-                max={1000}
-                value={guestCount}
-                onChange={(e) => setGuestCount(parseInt(e.target.value) || 50)}
-              />
-            </div>
-
-            {/* Contact Number */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Contact Number *
-              </Label>
-              <Input
-                type="tel"
-                placeholder="Your phone number"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-              />
-            </div>
-
-            {/* Special Instructions */}
-            <div className="space-y-2">
-              <Label>Special Instructions (Optional)</Label>
-              <Textarea
-                placeholder="Any special requirements, dietary restrictions, etc..."
-                value={eventDetails}
-                onChange={(e) => setEventDetails(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Location */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Event Venue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label>Full Address *</Label>
-              <Textarea
-                placeholder="Enter complete venue address..."
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-              />
-              {selectedPanchayat && selectedWardNumber && (
-                <p className="text-xs text-muted-foreground">
-                  📍 Ward {selectedWardNumber}, {selectedPanchayat.name}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <PlannerStepCard
+          stepNumber={4}
+          title="Event Venue"
+          description="Location address"
+          icon={<MapPin className="h-6 w-6" />}
+          isCompleted={isVenueComplete}
+          isActive={activeDialog === 'venue'}
+          summary={deliveryAddress ? deliveryAddress.substring(0, 30) + (deliveryAddress.length > 30 ? '...' : '') : undefined}
+          onClick={() => setActiveDialog('venue')}
+        />
 
         {/* Submit Button */}
         <Button
-          className="w-full bg-indoor-events hover:bg-indoor-events/90"
+          className="w-full bg-indoor-events hover:bg-indoor-events/90 mt-6"
           size="lg"
           onClick={handleSubmit}
-          disabled={isSubmitting || !selectedEventType || !eventDate}
+          disabled={isSubmitting || !canSubmit}
         >
           {isSubmitting ? (
             <>
@@ -393,9 +335,184 @@ const IndoorEventsQuickBooking: React.FC = () => {
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          Status: pending_admin_review • You will be contacted with quotation
+          Admin will review and send you a quotation
         </p>
       </main>
+
+      {/* Event Type Dialog */}
+      <StepDialog
+        open={activeDialog === 'event-type'}
+        onOpenChange={(open) => !open && setActiveDialog(null)}
+        title="Select Event Type"
+      >
+        <div className="space-y-4">
+          <EventTypeSelector
+            selectedEventType={selectedEventType}
+            onSelect={setSelectedEventType}
+          />
+          <Button
+            className="w-full bg-indoor-events hover:bg-indoor-events/90"
+            onClick={() => openNextStep('event-type')}
+            disabled={!selectedEventType}
+          >
+            Next
+          </Button>
+        </div>
+      </StepDialog>
+
+      {/* Food Selection Dialog */}
+      <StepDialog
+        open={activeDialog === 'food'}
+        onOpenChange={(open) => !open && setActiveDialog(null)}
+        title="Food Selection (Optional)"
+      >
+        <div className="space-y-4">
+          <QuickBookingFoodSelection
+            selectedItems={selectedItems}
+            onItemsChange={setSelectedItems}
+          />
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => openPrevStep('food')} className="flex-1">
+              Back
+            </Button>
+            <Button
+              className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
+              onClick={() => openNextStep('food')}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </StepDialog>
+
+      {/* Event Details Dialog */}
+      <StepDialog
+        open={activeDialog === 'details'}
+        onOpenChange={(open) => !open && setActiveDialog(null)}
+        title="Event Details"
+      >
+        <div className="space-y-4">
+          {/* Date Picker */}
+          <div className="space-y-2">
+            <Label>Event Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !eventDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {eventDate ? format(eventDate, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={eventDate}
+                  onSelect={setEventDate}
+                  disabled={(date) => isBefore(date, minDate)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Event Time */}
+          <div className="space-y-2">
+            <Label>Event Time (Optional)</Label>
+            <Input
+              type="time"
+              value={eventTime}
+              onChange={(e) => setEventTime(e.target.value)}
+            />
+          </div>
+
+          {/* Guest Count */}
+          <div className="space-y-2">
+            <Label>Number of Guests *</Label>
+            <Input
+              type="number"
+              min={10}
+              max={1000}
+              value={guestCount}
+              onChange={(e) => setGuestCount(parseInt(e.target.value) || 50)}
+            />
+          </div>
+
+          {/* Contact Number */}
+          <div className="space-y-2">
+            <Label>Contact Number *</Label>
+            <Input
+              type="tel"
+              placeholder="Your phone number"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+            />
+          </div>
+
+          {/* Special Instructions */}
+          <div className="space-y-2">
+            <Label>Special Instructions (Optional)</Label>
+            <Textarea
+              placeholder="Any special requirements..."
+              value={eventDetails}
+              onChange={(e) => setEventDetails(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => openPrevStep('details')} className="flex-1">
+              Back
+            </Button>
+            <Button
+              className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
+              onClick={() => openNextStep('details')}
+              disabled={!isDetailsComplete}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </StepDialog>
+
+      {/* Venue Dialog */}
+      <StepDialog
+        open={activeDialog === 'venue'}
+        onOpenChange={(open) => !open && setActiveDialog(null)}
+        title="Event Venue"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Full Address *</Label>
+            <Textarea
+              placeholder="Enter complete venue address..."
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+            />
+            {selectedPanchayat && selectedWardNumber && (
+              <p className="text-xs text-muted-foreground">
+                📍 Ward {selectedWardNumber}, {selectedPanchayat.name}
+              </p>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => openPrevStep('venue')} className="flex-1">
+              Back
+            </Button>
+            <Button
+              className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
+              onClick={() => setActiveDialog(null)}
+              disabled={!isVenueComplete}
+            >
+              Done
+            </Button>
+          </div>
+        </div>
+      </StepDialog>
 
       <BottomNav />
     </div>

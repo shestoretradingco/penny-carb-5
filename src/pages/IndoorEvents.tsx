@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Zap, Calculator, CalendarHeart, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Zap, Calculator, CalendarHeart } from 'lucide-react';
 import BottomNav from '@/components/customer/BottomNav';
 
 const IndoorEvents: React.FC = () => {
@@ -26,178 +25,73 @@ const IndoorEvents: React.FC = () => {
         </div>
       </header>
 
-      <main className="container px-4 py-6 space-y-6">
+      <main className="container px-4 py-8">
         {/* Hero Section */}
-        <div className="text-center py-6">
+        <div className="text-center mb-8">
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">
             Plan Your Perfect Event
           </h2>
           <p className="text-muted-foreground">
-            From intimate gatherings to grand celebrations, we've got you covered.
+            Choose your booking style
           </p>
         </div>
 
-        {/* Info Banner */}
-        <Card className="border-indoor-events/30 bg-indoor-events/5">
-          <CardContent className="flex items-center gap-3 p-4">
-            <AlertCircle className="h-5 w-5 text-indoor-events shrink-0" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground">
-                All bookings require admin approval
-              </p>
-              <p className="text-muted-foreground">
-                No instant payment. Get quotation first, then confirm with advance.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Booking Options */}
+        {/* Booking Cards */}
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Choose Your Booking Style
-          </h3>
-
           {/* Quick Booking Card */}
-          <Card 
-            className="cursor-pointer transition-all hover:shadow-lg hover:border-indoor-events/50 group"
+          <div 
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
             onClick={() => navigate('/indoor-events/quick-booking')}
           >
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-indoor-events/10 text-indoor-events group-hover:bg-indoor-events group-hover:text-white transition-colors">
-                  <Zap className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg">Quick Booking</CardTitle>
-                  <CardDescription>
-                    Simple & fast for those who trust us
-                  </CardDescription>
-                </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+            
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+                <Zap className="h-7 w-7 text-white" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Just fill basic event details
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  No dish-level selection required
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Admin will send you a quotation
-                </li>
-              </ul>
-              <Button 
-                className="w-full mt-4 bg-indoor-events hover:bg-indoor-events/90"
-                variant="default"
-              >
-                Quick Booking
-              </Button>
-            </CardContent>
-          </Card>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white">Quick Booking</h3>
+                <p className="text-white/80 text-sm mt-1">
+                  Simple & fast • Admin sends quotation
+                </p>
+              </div>
+            </div>
+          </div>
 
-          {/* Planning & Budget Builder Card */}
-          <Card 
-            className="cursor-pointer transition-all hover:shadow-lg hover:border-indoor-events/50 group border-2 border-indoor-events/30"
+          {/* Plan & Estimate Card */}
+          <div 
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
             onClick={() => navigate('/indoor-events/planner')}
           >
-            <div className="absolute -top-2 right-4">
-              <span className="bg-indoor-events text-white text-xs px-2 py-1 rounded-full font-medium">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+            
+            {/* Recommended Badge */}
+            <div className="absolute top-3 right-3">
+              <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full font-medium">
                 Recommended
               </span>
             </div>
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-indoor-events/10 text-indoor-events group-hover:bg-indoor-events group-hover:text-white transition-colors">
-                  <Calculator className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg">Plan & Estimate Budget</CardTitle>
-                  <CardDescription>
-                    Build menu, add services, see instant pricing
-                  </CardDescription>
-                </div>
+            
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+                <Calculator className="h-7 w-7 text-white" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Choose dishes from our menu
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Add services like decoration, staff
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Real-time budget estimation
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indoor-events" />
-                  Use suggested event models
-                </li>
-              </ul>
-              <Button 
-                className="w-full mt-4 bg-indoor-events hover:bg-indoor-events/90"
-                variant="default"
-              >
-                Plan & Estimate Budget
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* How It Works */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">How It Works</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indoor-events/10 text-indoor-events text-sm font-bold">
-                  1
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Submit Your Request</p>
-                  <p className="text-xs text-muted-foreground">Quick booking or detailed planning</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indoor-events/10 text-indoor-events text-sm font-bold">
-                  2
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Admin Reviews</p>
-                  <p className="text-xs text-muted-foreground">We review and send final quotation</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indoor-events/10 text-indoor-events text-sm font-bold">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Confirm & Pay Advance</p>
-                  <p className="text-xs text-muted-foreground">Pay advance to confirm booking</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indoor-events/10 text-indoor-events text-sm font-bold">
-                  4
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Enjoy Your Event</p>
-                  <p className="text-xs text-muted-foreground">We handle everything on the day</p>
-                </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white">Plan & Estimate</h3>
+                <p className="text-white/80 text-sm mt-1">
+                  Build menu • Real-time pricing
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Info Text */}
+        <p className="text-center text-sm text-muted-foreground mt-8">
+          All bookings require admin approval. No instant payment.
+        </p>
       </main>
 
       <BottomNav />
