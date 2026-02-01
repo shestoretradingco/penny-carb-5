@@ -154,26 +154,14 @@ const IndoorEventsPlanner: React.FC = () => {
     setPlannerData((prev) => ({ ...prev, ...updates }));
   };
 
-  const markStepComplete = (stepId: string) => {
-    setCompletedSteps((prev) => new Set([...prev, stepId]));
+  // Close dialog without auto-opening next
+  const closeDialog = () => {
     setActiveDialog(null);
   };
 
-  const openNextStep = (currentStepId: string) => {
-    const currentIndex = STEPS.findIndex((s) => s.id === currentStepId);
-    if (currentIndex < STEPS.length - 1) {
-      markStepComplete(currentStepId);
-      setActiveDialog(STEPS[currentIndex + 1].id);
-    } else {
-      markStepComplete(currentStepId);
-    }
-  };
-
-  const openPrevStep = (currentStepId: string) => {
-    const currentIndex = STEPS.findIndex((s) => s.id === currentStepId);
-    if (currentIndex > 0) {
-      setActiveDialog(STEPS[currentIndex - 1].id);
-    }
+  const completeAndClose = (stepId: string) => {
+    setCompletedSteps((prev) => new Set([...prev, stepId]));
+    setActiveDialog(null);
   };
 
   const getStepSummary = (stepId: string): string | undefined => {
@@ -449,7 +437,7 @@ ${plannerData.eventDetails || 'None'}
         <EventTypeStep
           selectedEventType={plannerData.eventType}
           onSelect={(eventType) => updatePlannerData({ eventType })}
-          onNext={() => openNextStep('event-type')}
+          onNext={() => completeAndClose('event-type')}
         />
       </StepDialog>
 
@@ -461,8 +449,8 @@ ${plannerData.eventDetails || 'None'}
         <GuestCountStep
           guestCount={plannerData.guestCount}
           onChange={(guestCount) => updatePlannerData({ guestCount })}
-          onNext={() => openNextStep('guests')}
-          onBack={() => openPrevStep('guests')}
+          onNext={() => completeAndClose('guests')}
+          onBack={closeDialog}
         />
       </StepDialog>
 
@@ -475,8 +463,8 @@ ${plannerData.eventDetails || 'None'}
           selectedFoods={plannerData.selectedFoods}
           guestCount={plannerData.guestCount}
           onUpdateFoods={(selectedFoods) => updatePlannerData({ selectedFoods })}
-          onNext={() => openNextStep('food')}
-          onBack={() => openPrevStep('food')}
+          onNext={() => completeAndClose('food')}
+          onBack={closeDialog}
         />
       </StepDialog>
 
@@ -489,8 +477,8 @@ ${plannerData.eventDetails || 'None'}
           selectedServices={plannerData.selectedServices}
           guestCount={plannerData.guestCount}
           onUpdateServices={(selectedServices) => updatePlannerData({ selectedServices })}
-          onNext={() => openNextStep('services')}
-          onBack={() => openPrevStep('services')}
+          onNext={() => completeAndClose('services')}
+          onBack={closeDialog}
         />
       </StepDialog>
 
@@ -502,8 +490,8 @@ ${plannerData.eventDetails || 'None'}
         <BudgetSummaryStep
           plannerData={plannerData}
           totals={totals}
-          onNext={() => openNextStep('summary')}
-          onBack={() => openPrevStep('summary')}
+          onNext={() => completeAndClose('summary')}
+          onBack={closeDialog}
         />
       </StepDialog>
 
@@ -517,8 +505,8 @@ ${plannerData.eventDetails || 'None'}
           onApplyModel={(foods, services) => {
             updatePlannerData({ selectedFoods: foods, selectedServices: services });
           }}
-          onNext={() => openNextStep('models')}
-          onBack={() => openPrevStep('models')}
+          onNext={() => completeAndClose('models')}
+          onBack={closeDialog}
         />
       </StepDialog>
 
@@ -532,7 +520,7 @@ ${plannerData.eventDetails || 'None'}
           totals={totals}
           onUpdateData={updatePlannerData}
           onSubmit={handleSubmit}
-          onBack={() => openPrevStep('submit')}
+          onBack={closeDialog}
           isSubmitting={isSubmitting}
         />
       </StepDialog>

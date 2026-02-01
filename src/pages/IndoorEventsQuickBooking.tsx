@@ -81,24 +81,9 @@ const IndoorEventsQuickBooking: React.FC = () => {
     0
   );
 
-  const openNextStep = (currentStep: DialogStep) => {
-    const steps: DialogStep[] = ['event-type', 'food', 'details', 'venue'];
-    const currentIndex = steps.indexOf(currentStep);
-    if (currentIndex < steps.length - 1) {
-      setActiveDialog(steps[currentIndex + 1]);
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openPrevStep = (currentStep: DialogStep) => {
-    const steps: DialogStep[] = ['event-type', 'food', 'details', 'venue'];
-    const currentIndex = steps.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setActiveDialog(steps[currentIndex - 1]);
-    } else {
-      setActiveDialog(null);
-    }
+  // Close dialog after completing a step instead of auto-opening next
+  const closeDialog = () => {
+    setActiveDialog(null);
   };
 
   const handleSubmit = async () => {
@@ -397,10 +382,10 @@ const IndoorEventsQuickBooking: React.FC = () => {
           />
           <Button
             className="w-full bg-indoor-events hover:bg-indoor-events/90"
-            onClick={() => openNextStep('event-type')}
+            onClick={closeDialog}
             disabled={!selectedEventType}
           >
-            Next
+            Done
           </Button>
         </div>
       </StepDialog>
@@ -417,14 +402,14 @@ const IndoorEventsQuickBooking: React.FC = () => {
             onItemsChange={setSelectedItems}
           />
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => openPrevStep('food')} className="flex-1">
-              Back
+            <Button variant="outline" onClick={closeDialog} className="flex-1">
+              Cancel
             </Button>
             <Button
               className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
-              onClick={() => openNextStep('food')}
+              onClick={closeDialog}
             >
-              Next
+              Done
             </Button>
           </div>
         </div>
@@ -509,15 +494,15 @@ const IndoorEventsQuickBooking: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => openPrevStep('details')} className="flex-1">
-              Back
+            <Button variant="outline" onClick={closeDialog} className="flex-1">
+              Cancel
             </Button>
             <Button
               className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
-              onClick={() => openNextStep('details')}
+              onClick={closeDialog}
               disabled={!isDetailsComplete}
             >
-              Next
+              Done
             </Button>
           </div>
         </div>
@@ -558,8 +543,8 @@ const IndoorEventsQuickBooking: React.FC = () => {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => openPrevStep('venue')} className="flex-1">
-              Back
+            <Button variant="outline" onClick={closeDialog} className="flex-1">
+              Cancel
             </Button>
             <Button
               className="flex-1 bg-indoor-events hover:bg-indoor-events/90"
