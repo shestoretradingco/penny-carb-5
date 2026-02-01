@@ -325,24 +325,8 @@ const CookDashboard: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Customer Info */}
-                      {order.customer && (
-                        <div className="p-2 rounded bg-muted text-sm">
-                          <p className="font-medium">{order.customer.name}</p>
-                          <a href={`tel:${order.customer.mobile_number}`} className="flex items-center gap-1 text-primary">
-                            <Phone className="h-3 w-3" />
-                            {order.customer.mobile_number}
-                          </a>
-                        </div>
-                      )}
-
-                      {/* Delivery Address */}
-                      {order.delivery_address && (
-                        <div className="flex items-start gap-1 text-sm text-muted-foreground">
-                          <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
-                          <span>{order.delivery_address}</span>
-                        </div>
-                      )}
+                      {/* Customer Info - Hidden for privacy */}
+                      {/* Delivery Address - Hidden for privacy */}
 
                       {/* Amount */}
                       <div className="flex items-center justify-between pt-2 border-t">
