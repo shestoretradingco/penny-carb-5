@@ -11,6 +11,7 @@ import {
   BarChart3,
   Percent,
   Wallet,
+  Sparkles,
 } from 'lucide-react';
 
 export type IndoorEventsStats = {
@@ -67,6 +68,12 @@ const IndoorEventsDashboard: React.FC<Props> = ({ stats }) => {
       label: 'Accounts & Payouts',
       path: '/admin/indoor-events/accounts',
       description: 'Cook settlements & payouts',
+    },
+    {
+      icon: Sparkles,
+      label: 'Manage Services',
+      path: '/admin/indoor-events/services',
+      description: 'Add-on services for events',
     },
     {
       icon: BarChart3,

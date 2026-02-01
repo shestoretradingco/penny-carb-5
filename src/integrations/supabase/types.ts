@@ -537,6 +537,45 @@ export type Database = {
           },
         ]
       }
+      indoor_event_services: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          price_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          price_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          price_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       indoor_event_vehicles: {
         Row: {
           created_at: string
