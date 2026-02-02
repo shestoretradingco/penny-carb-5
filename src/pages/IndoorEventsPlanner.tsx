@@ -65,8 +65,8 @@ export interface PlannerData {
 
 const STEPS = [
   { id: 'event-type', title: 'Event Type', description: 'What occasion?', icon: <CalendarHeart className="h-6 w-6" /> },
-  { id: 'food', title: 'Food Selection', description: 'Build your menu', icon: <Utensils className="h-6 w-6" /> },
   { id: 'guests', title: 'Guest Count', description: 'How many guests?', icon: <Users className="h-6 w-6" /> },
+  { id: 'food', title: 'Food Selection', description: 'Build your menu', icon: <Utensils className="h-6 w-6" /> },
   { id: 'services', title: 'Add Services', description: 'Decoration, staff, etc.', icon: <Sparkles className="h-6 w-6" /> },
   { id: 'summary', title: 'Budget Summary', description: 'Review your estimate', icon: <ClipboardList className="h-6 w-6" /> },
   { id: 'models', title: 'Event Models', description: 'Use pre-built packages', icon: <Layers className="h-6 w-6" /> },
@@ -450,7 +450,7 @@ ${plannerData.eventDetails || 'None'}
         )}
       </main>
 
-      {/* Step Dialogs - Order: event-type → food → guests → services → summary → models → submit */}
+      {/* Step Dialogs - Order: event-type → guests → food → services → summary → models → submit */}
       <StepDialog
         open={activeDialog === 'event-type'}
         onOpenChange={(open) => !open && setActiveDialog(null)}
@@ -464,6 +464,20 @@ ${plannerData.eventDetails || 'None'}
       </StepDialog>
 
       <StepDialog
+        open={activeDialog === 'guests'}
+        onOpenChange={(open) => !open && setActiveDialog(null)}
+        title="Guest Count"
+      >
+        <GuestCountStep
+          guestCount={plannerData.guestCount}
+          selectedFoods={plannerData.selectedFoods}
+          onChange={(guestCount) => updatePlannerData({ guestCount })}
+          onNext={() => completeAndAdvance('guests')}
+          onBack={closeDialog}
+        />
+      </StepDialog>
+
+      <StepDialog
         open={activeDialog === 'food'}
         onOpenChange={(open) => !open && setActiveDialog(null)}
         title="Food Selection"
@@ -473,19 +487,6 @@ ${plannerData.eventDetails || 'None'}
           guestCount={plannerData.guestCount}
           onUpdateFoods={(selectedFoods) => updatePlannerData({ selectedFoods })}
           onNext={() => completeAndAdvance('food')}
-          onBack={closeDialog}
-        />
-      </StepDialog>
-
-      <StepDialog
-        open={activeDialog === 'guests'}
-        onOpenChange={(open) => !open && setActiveDialog(null)}
-        title="Guest Count"
-      >
-        <GuestCountStep
-          guestCount={plannerData.guestCount}
-          onChange={(guestCount) => updatePlannerData({ guestCount })}
-          onNext={() => completeAndAdvance('guests')}
           onBack={closeDialog}
         />
       </StepDialog>
