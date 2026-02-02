@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import IndoorEventsShell from './IndoorEventsShell';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Percent, DollarSign, Clock, CheckCircle, AlertTriangle, User, Phone } from 'lucide-react';
+import { Percent, DollarSign, Clock, CheckCircle, AlertTriangle, User, Phone, ExternalLink, Settings } from 'lucide-react';
+import CommissionRulesTab from '@/components/admin/indoor-events/CommissionRulesTab';
+import ReferralPayoutButton from '@/components/admin/indoor-events/ReferralPayoutButton';
 
 interface ReferralData {
   id: string;
+  referrer_id: string;
   commission_percent: number;
   commission_amount: number;
   status: string;
@@ -44,6 +49,7 @@ interface OrderWithReferral {
 }
 
 const IndoorEventsCommissions: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
 
   // Get referrals for indoor_events orders
@@ -204,6 +210,10 @@ const IndoorEventsCommissions: React.FC = () => {
 
   const isLoading = isLoadingReferrals || isLoadingOrders;
 
+  const handleViewOrder = (orderId: string) => {
+    navigate(`/admin/indoor-events/orders?orderId=${orderId}`);
+  };
+
   return (
     <IndoorEventsShell title="Commission Tracking">
       {/* Summary Cards */}
@@ -233,8 +243,8 @@ const IndoorEventsCommissions: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All Referrals</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">Referrals</TabsTrigger>
           <TabsTrigger value="matched">
             Matched ({ordersWithReferences?.matched.length || 0})
           </TabsTrigger>
@@ -245,6 +255,10 @@ const IndoorEventsCommissions: React.FC = () => {
                 {ordersWithReferences?.missing.length}
               </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="rules">
+            <Settings className="h-4 w-4 mr-1" />
+            Rules
           </TabsTrigger>
         </TabsList>
 
@@ -269,8 +283,19 @@ const IndoorEventsCommissions: React.FC = () => {
                 <Card key={ref.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-mono text-sm">{ref.order?.order_number}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-mono text-sm">{ref.order?.order_number}</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => ref.order?.id && handleViewOrder(ref.order.id)}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Referrer: {ref.referrer?.name || 'Unknown'} ({ref.referrer?.mobile_number})
                         </p>
@@ -278,17 +303,25 @@ const IndoorEventsCommissions: React.FC = () => {
                           Customer: {ref.order?.profile?.name}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right space-y-1">
                         <Badge variant="outline" className="text-xs capitalize">
                           <span className={`mr-1.5 h-2 w-2 rounded-full inline-block ${statusColors[ref.status]}`} />
                           {ref.status}
                         </Badge>
-                        <p className="font-bold text-indoor-events mt-1">₹{ref.commission_amount?.toLocaleString()}</p>
+                        <p className="font-bold text-indoor-events">₹{ref.commission_amount?.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{ref.commission_percent}%</p>
                       </div>
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Order: ₹{ref.order?.total_amount?.toLocaleString()} • {ref.order?.event_date ? format(new Date(ref.order.event_date), 'dd MMM yyyy') : ''}
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        Order: ₹{ref.order?.total_amount?.toLocaleString()} • {ref.order?.event_date ? format(new Date(ref.order.event_date), 'dd MMM yyyy') : ''}
+                      </div>
+                      <ReferralPayoutButton
+                        referralId={ref.id}
+                        referrerId={ref.referrer_id}
+                        amount={ref.commission_amount}
+                        status={ref.status}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -318,14 +351,23 @@ const IndoorEventsCommissions: React.FC = () => {
                 <Card key={order.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <div>
+                      <div className="flex items-center gap-2">
                         <p className="font-mono text-sm font-medium">{order.order_number}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.event_date ? format(new Date(order.event_date), 'dd MMM yyyy') : format(new Date(order.created_at), 'dd MMM yyyy')}
-                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => handleViewOrder(order.id)}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
                       </div>
                       <p className="font-bold">₹{order.total_amount?.toLocaleString()}</p>
                     </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {order.event_date ? format(new Date(order.event_date), 'dd MMM yyyy') : format(new Date(order.created_at), 'dd MMM yyyy')}
+                    </p>
                     
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="bg-muted/50 rounded-lg p-2">
@@ -390,14 +432,23 @@ const IndoorEventsCommissions: React.FC = () => {
                 <Card key={order.id} className="border-orange-200">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <div>
+                      <div className="flex items-center gap-2">
                         <p className="font-mono text-sm font-medium">{order.order_number}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.event_date ? format(new Date(order.event_date), 'dd MMM yyyy') : format(new Date(order.created_at), 'dd MMM yyyy')}
-                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => handleViewOrder(order.id)}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
                       </div>
                       <p className="font-bold">₹{order.total_amount?.toLocaleString()}</p>
                     </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {order.event_date ? format(new Date(order.event_date), 'dd MMM yyyy') : format(new Date(order.created_at), 'dd MMM yyyy')}
+                    </p>
                     
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="bg-muted/50 rounded-lg p-2">
@@ -428,6 +479,11 @@ const IndoorEventsCommissions: React.FC = () => {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        {/* Commission Rules Tab */}
+        <TabsContent value="rules">
+          <CommissionRulesTab />
         </TabsContent>
       </Tabs>
     </IndoorEventsShell>

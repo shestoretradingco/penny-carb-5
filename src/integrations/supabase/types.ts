@@ -172,6 +172,48 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_rules: {
+        Row: {
+          commission_percent: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          max_commission_amount: number | null
+          min_order_amount: number | null
+          name: string
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          commission_percent?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_commission_amount?: number | null
+          min_order_amount?: number | null
+          name: string
+          service_type?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_percent?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_commission_amount?: number | null
+          min_order_amount?: number | null
+          name?: string
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cook_dish_requests: {
         Row: {
           admin_notes: string | null
@@ -361,6 +403,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          transaction_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "customer_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_credited: number
+          total_withdrawn: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_credited?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_credited?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       delivery_staff: {
         Row: {
