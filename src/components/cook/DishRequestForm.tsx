@@ -254,28 +254,6 @@ const DishRequestForm: React.FC = () => {
                           />
                         </div>
 
-                        <FormField
-                          control={form.control}
-                          name="dish_category_id"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category (Optional)</FormLabel>
-                              <Select value={field.value || ""} onValueChange={field.onChange}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a category..." />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {categories?.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
 
                         <FormField
                           control={form.control}
