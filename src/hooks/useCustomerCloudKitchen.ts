@@ -33,8 +33,8 @@ function checkIfOrderingOpen(slot: {
   start_time: string;
   end_time: string;
   cutoff_hours_before: number;
-}): {
-  isOpen: boolean;
+}): { 
+  isOpen: boolean; 
   timeRemaining: { hours: number; minutes: number } | null;
   statusLabel: 'open' | 'closing_soon' | 'closed';
 } {
@@ -44,70 +44,60 @@ function checkIfOrderingOpen(slot: {
   // Parse slot times
   const [startHours, startMins] = slot.start_time.split(':').map(Number);
   const slotStartMinutes = startHours * 60 + startMins;
-
+  
   const [endHours, endMins] = slot.end_time.split(':').map(Number);
   const slotEndMinutes = endHours * 60 + endMins;
 
-  // Is current time within the slot window? (supports overnight slots)
-  const isWithinSlotTime =
-    slotEndMinutes > slotStartMinutes
-      ? currentMinutes >= slotStartMinutes && currentMinutes < slotEndMinutes
-      : currentMinutes >= slotStartMinutes || currentMinutes < slotEndMinutes;
-
-  // If we are currently in the slot window, ordering should be OPEN until end_time
-  if (isWithinSlotTime) {
-    let remainingMinutes = slotEndMinutes - currentMinutes;
-    if (remainingMinutes < 0) {
-      // Overnight slot: end time is next day
-      remainingMinutes = 24 * 60 + remainingMinutes;
-    }
-
-    const hours = Math.floor(remainingMinutes / 60);
-    const minutes = remainingMinutes % 60;
-
-    const statusLabel: 'open' | 'closing_soon' | 'closed' =
-      remainingMinutes <= 60 ? 'closing_soon' : 'open';
-
-    return {
-      isOpen: true,
-      timeRemaining: { hours, minutes },
-      statusLabel,
-    };
+  // Calculate cutoff time (when ordering closes)
+  let cutoffMinutes = slotStartMinutes - (slot.cutoff_hours_before * 60);
+  
+  // Handle negative cutoff (wraps to previous day logic)
+  if (cutoffMinutes < 0) {
+    cutoffMinutes = 24 * 60 + cutoffMinutes; // wrap around
   }
 
-  // If we are past the slot end, it is closed for today
-  const hasSlotEndedToday =
-    slotEndMinutes > slotStartMinutes
-      ? currentMinutes >= slotEndMinutes
-      : currentMinutes >= slotEndMinutes && currentMinutes < slotStartMinutes;
+  // Check if slot has already ended today (past the end time)
+  const hasSlotEndedToday = slotEndMinutes > slotStartMinutes 
+    ? currentMinutes >= slotEndMinutes  // Normal slot: ended if past end time
+    : (currentMinutes >= slotEndMinutes && currentMinutes < slotStartMinutes); // Overnight slot
 
   if (hasSlotEndedToday) {
     return { isOpen: false, timeRemaining: null, statusLabel: 'closed' };
   }
 
-  // Otherwise, we are BEFORE the slot start. Ordering is open only until cutoff.
-  // Cutoff is (start_time - cutoff_hours_before)
-  let cutoffMinutes = slotStartMinutes - slot.cutoff_hours_before * 60;
-
-  // If cutoff wraps to previous day, normalize to 0..1439, but remember it wrapped.
-  const cutoffWrapped = cutoffMinutes < 0;
-  if (cutoffWrapped) cutoffMinutes = 24 * 60 + cutoffMinutes;
-
-  // If cutoff wrapped, cutoff happened "yesterday" at cutoffMinutes, so on the day of the slot
-  // ordering is already closed (since we're after yesterday's cutoff).
-  const isBeforeCutoff = cutoffWrapped ? false : currentMinutes < cutoffMinutes;
+  // Check if ordering is still open (before cutoff)
+  // Cutoff is when orders stop being accepted, before the slot starts
+  let isBeforeCutoff: boolean;
+  
+  if (cutoffMinutes < 0 || cutoffMinutes > slotStartMinutes) {
+    // Cutoff wraps to previous day (e.g., slot at 06:00 with 8h cutoff = 22:00 previous day)
+    // If cutoff wrapped, check if we're in the valid ordering window
+    const wrappedCutoff = cutoffMinutes < 0 ? 24 * 60 + cutoffMinutes : cutoffMinutes;
+    isBeforeCutoff = currentMinutes < slotStartMinutes && 
+      (currentMinutes < wrappedCutoff || currentMinutes >= slotStartMinutes);
+  } else {
+    // Normal case: cutoff is before slot start on same day
+    isBeforeCutoff = currentMinutes < cutoffMinutes;
+  }
 
   if (!isBeforeCutoff) {
     return { isOpen: false, timeRemaining: null, statusLabel: 'closed' };
   }
 
-  // Time remaining until cutoff
-  const remainingMinutes = cutoffMinutes - currentMinutes;
+  // Calculate remaining time until cutoff
+  let remainingMinutes = cutoffMinutes - currentMinutes;
+  if (remainingMinutes < 0) {
+    remainingMinutes = 24 * 60 + remainingMinutes;
+  }
+
   const hours = Math.floor(remainingMinutes / 60);
   const minutes = remainingMinutes % 60;
 
-  const statusLabel: 'open' | 'closing_soon' | 'closed' =
-    remainingMinutes <= 60 ? 'closing_soon' : 'open';
+  // Determine status label
+  let statusLabel: 'open' | 'closing_soon' | 'closed' = 'open';
+  if (remainingMinutes <= 60) {
+    statusLabel = 'closing_soon'; // Less than 1 hour remaining
+  }
 
   return {
     isOpen: true,
