@@ -56,24 +56,28 @@ function checkIfOrderingOpen(slot: {
     cutoffMinutes = 24 * 60 + cutoffMinutes; // wrap around
   }
 
-  // Check if we're within the delivery window (between start and end time)
-  const isWithinSlotTime = slotEndMinutes > slotStartMinutes 
-    ? (currentMinutes >= slotStartMinutes && currentMinutes < slotEndMinutes)
-    : (currentMinutes >= slotStartMinutes || currentMinutes < slotEndMinutes); // handles overnight slots
+  // Check if slot has already ended today (past the end time)
+  const hasSlotEndedToday = slotEndMinutes > slotStartMinutes 
+    ? currentMinutes >= slotEndMinutes  // Normal slot: ended if past end time
+    : (currentMinutes >= slotEndMinutes && currentMinutes < slotStartMinutes); // Overnight slot
+
+  if (hasSlotEndedToday) {
+    return { isOpen: false, timeRemaining: null, statusLabel: 'closed' };
+  }
 
   // Check if ordering is still open (before cutoff)
+  // Cutoff is when orders stop being accepted, before the slot starts
   let isBeforeCutoff: boolean;
-  if (cutoffMinutes > slotStartMinutes) {
-    // Cutoff wraps to previous day - complex case
-    isBeforeCutoff = currentMinutes < cutoffMinutes && currentMinutes < slotStartMinutes;
+  
+  if (cutoffMinutes < 0 || cutoffMinutes > slotStartMinutes) {
+    // Cutoff wraps to previous day (e.g., slot at 06:00 with 8h cutoff = 22:00 previous day)
+    // If cutoff wrapped, check if we're in the valid ordering window
+    const wrappedCutoff = cutoffMinutes < 0 ? 24 * 60 + cutoffMinutes : cutoffMinutes;
+    isBeforeCutoff = currentMinutes < slotStartMinutes && 
+      (currentMinutes < wrappedCutoff || currentMinutes >= slotStartMinutes);
   } else {
     // Normal case: cutoff is before slot start on same day
     isBeforeCutoff = currentMinutes < cutoffMinutes;
-  }
-
-  // If slot has already ended today, ordering is closed
-  if (!isWithinSlotTime && currentMinutes > slotEndMinutes && slotEndMinutes > 0) {
-    return { isOpen: false, timeRemaining: null, statusLabel: 'closed' };
   }
 
   if (!isBeforeCutoff) {
