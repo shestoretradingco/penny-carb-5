@@ -21,32 +21,67 @@ export function useCloudKitchenSlots() {
 // Helper function to check if a slot is available for ordering
 export function isSlotAvailable(slot: CloudKitchenSlot): boolean {
   const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-  
-  // Parse slot start time (format: "HH:MM:SS")
-  const [hours, minutes] = slot.start_time.split(':').map(Number);
-  const slotStartMinutes = hours * 60 + minutes;
-  
-  // Calculate cutoff time
-  const cutoffMinutes = slotStartMinutes - (slot.cutoff_hours_before * 60);
-  
-  // Check if current time is before cutoff
-  return currentTime < cutoffMinutes;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [startH, startM] = slot.start_time.split(':').map(Number);
+  const slotStartMinutes = startH * 60 + startM;
+
+  const [endH, endM] = slot.end_time.split(':').map(Number);
+  const slotEndMinutes = endH * 60 + endM;
+
+  const isWithinSlotTime =
+    slotEndMinutes > slotStartMinutes
+      ? currentMinutes >= slotStartMinutes && currentMinutes < slotEndMinutes
+      : currentMinutes >= slotStartMinutes || currentMinutes < slotEndMinutes;
+
+  if (isWithinSlotTime) return true;
+
+  // Before slot start: allow ordering until cutoff
+  let cutoffMinutes = slotStartMinutes - slot.cutoff_hours_before * 60;
+  const cutoffWrapped = cutoffMinutes < 0;
+  if (cutoffWrapped) cutoffMinutes = 24 * 60 + cutoffMinutes;
+
+  // If cutoff wrapped, cutoff was "yesterday" relative to today's slot start → closed today.
+  if (cutoffWrapped) return false;
+
+  return currentMinutes < cutoffMinutes;
 }
 
-// Get time remaining until cutoff
-export function getTimeUntilCutoff(slot: CloudKitchenSlot): { hours: number; minutes: number } | null {
+// Get time remaining (if within slot: until end; if before slot start: until cutoff)
+export function getTimeUntilCutoff(
+  slot: CloudKitchenSlot
+): { hours: number; minutes: number } | null {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  
-  const [hours, minutes] = slot.start_time.split(':').map(Number);
-  const slotStartMinutes = hours * 60 + minutes;
-  const cutoffMinutes = slotStartMinutes - (slot.cutoff_hours_before * 60);
-  
-  if (currentMinutes >= cutoffMinutes) {
-    return null; // Cutoff passed
+
+  const [startH, startM] = slot.start_time.split(':').map(Number);
+  const slotStartMinutes = startH * 60 + startM;
+
+  const [endH, endM] = slot.end_time.split(':').map(Number);
+  const slotEndMinutes = endH * 60 + endM;
+
+  const isWithinSlotTime =
+    slotEndMinutes > slotStartMinutes
+      ? currentMinutes >= slotStartMinutes && currentMinutes < slotEndMinutes
+      : currentMinutes >= slotStartMinutes || currentMinutes < slotEndMinutes;
+
+  if (isWithinSlotTime) {
+    let remainingMinutes = slotEndMinutes - currentMinutes;
+    if (remainingMinutes < 0) remainingMinutes = 24 * 60 + remainingMinutes;
+    return {
+      hours: Math.floor(remainingMinutes / 60),
+      minutes: remainingMinutes % 60,
+    };
   }
-  
+
+  // Before slot start: remaining time to cutoff
+  let cutoffMinutes = slotStartMinutes - slot.cutoff_hours_before * 60;
+  const cutoffWrapped = cutoffMinutes < 0;
+  if (cutoffWrapped) cutoffMinutes = 24 * 60 + cutoffMinutes;
+
+  if (cutoffWrapped) return null;
+  if (currentMinutes >= cutoffMinutes) return null;
+
   const remainingMinutes = cutoffMinutes - currentMinutes;
   return {
     hours: Math.floor(remainingMinutes / 60),
