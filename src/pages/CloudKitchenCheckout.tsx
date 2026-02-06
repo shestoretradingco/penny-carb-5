@@ -156,6 +156,7 @@ const CloudKitchenCheckout: React.FC = () => {
       const assignedCookId = availableCooks?.[0]?.id || null;
 
       // Create the order with cloud_kitchen_slot_id and proper status
+      // Note: Cook assignment is managed via order_assigned_cooks table, not orders.assigned_cook_id
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -171,9 +172,7 @@ const CloudKitchenCheckout: React.FC = () => {
           status: 'confirmed', // Auto-confirm cloud kitchen orders
           cook_status: 'pending', // Waiting for cook to prepare
           delivery_status: 'pending', // Waiting for delivery assignment
-          cook_assignment_status: assignedCookId ? 'pending' : 'pending',
-          assigned_cook_id: assignedCookId,
-          cook_assigned_at: assignedCookId ? new Date().toISOString() : null,
+          cook_assignment_status: assignedCookId ? 'pending' : 'unassigned',
         }])
         .select()
         .single();
