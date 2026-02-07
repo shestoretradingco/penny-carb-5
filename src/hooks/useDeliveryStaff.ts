@@ -28,32 +28,26 @@ export function useDeliveryProfile() {
 }
 
 export function useDeliveryWallet() {
-  const { user } = useAuth();
+  const { data: profile } = useDeliveryProfile();
 
   return useQuery({
-    queryKey: ['delivery-wallet', user?.id],
+    queryKey: ['delivery-wallet', profile?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-
-      // First get the delivery staff id
-      const { data: staffData } = await supabase
-        .from('delivery_staff')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!staffData) return null;
+      if (!profile?.id) return null;
 
       const { data, error } = await supabase
         .from('delivery_wallets')
         .select('*')
-        .eq('delivery_staff_id', staffData.id)
+        .eq('delivery_staff_id', profile.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Wallet fetch error:', error);
+        throw error;
+      }
       return data as DeliveryWallet | null;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 }
 
