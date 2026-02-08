@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { toast } from '@/hooks/use-toast';
 import NewOrderAlert from '@/components/delivery/NewOrderAlert';
 import OrderTakenToast from '@/components/delivery/OrderTakenToast';
+import NotificationPermissionBanner from '@/components/NotificationPermissionBanner';
 import { format } from 'date-fns';
 import { 
   Truck, 
@@ -239,6 +240,9 @@ const DeliveryDashboard: React.FC = () => {
       </header>
 
       <main className="container px-4 py-4 space-y-4">
+        {/* Notification Permission Banner */}
+        <NotificationPermissionBanner />
+
         {/* Availability Toggle */}
         <Card>
           <CardContent className="flex items-center justify-between p-4">

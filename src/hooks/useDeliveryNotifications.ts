@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDeliveryProfile } from './useDeliveryStaff';
+import { useBrowserNotifications } from '@/hooks/useBrowserNotifications';
 import type { DeliveryOrder } from '@/types/delivery';
 
 const ORDER_ACCEPT_CUTOFF_SECONDS = 120; // 2 minutes to accept
@@ -20,6 +21,7 @@ export interface OrderTakenInfo {
 export function useDeliveryNotifications() {
   const queryClient = useQueryClient();
   const { data: profile } = useDeliveryProfile();
+  const { notifyNewOrder, notifyOrderReady, notifyOrderTaken, permission } = useBrowserNotifications();
   const [pendingOrders, setPendingOrders] = useState<PendingDeliveryOrder[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [ordersTaken, setOrdersTaken] = useState<OrderTakenInfo[]>([]);
@@ -96,7 +98,15 @@ export function useDeliveryNotifications() {
     });
     setShowAlert(true);
     playNotificationSound();
-  }, [playNotificationSound]);
+    
+    // Show browser notification for new delivery order
+    if (permission === 'granted') {
+      notifyOrderReady(newOrder.order_number, () => {
+        window.focus();
+        setShowAlert(true);
+      });
+    }
+  }, [playNotificationSound, permission, notifyOrderReady]);
 
   // Remove order from pending (accepted by someone or expired)
   const removeOrder = useCallback((orderId: string) => {
@@ -192,6 +202,10 @@ export function useDeliveryNotifications() {
                     takenBy: 'another driver'
                   }
                 ]);
+                // Show browser notification for order taken
+                if (permission === 'granted') {
+                  notifyOrderTaken(order.order_number);
+                }
                 // Auto-dismiss after 5 seconds
                 setTimeout(() => clearOrderTaken(order.id), 5000);
               }

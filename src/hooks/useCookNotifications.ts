@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCookProfile } from '@/hooks/useCook';
+import { useBrowserNotifications } from '@/hooks/useBrowserNotifications';
 import type { CookOrder, CookOrderItem } from '@/types/cook';
 
 const ORDER_ACCEPT_CUTOFF_SECONDS = 120;
@@ -14,9 +15,20 @@ export interface PendingCookOrder extends CookOrder {
 export function useCookNotifications() {
   const queryClient = useQueryClient();
   const { data: profile } = useCookProfile();
+  const { notifyNewOrder, permission } = useBrowserNotifications();
   const [pendingOrders, setPendingOrders] = useState<PendingCookOrder[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Show browser notification for new order
+  const showBrowserNotification = useCallback((order: PendingCookOrder) => {
+    if (permission === 'granted') {
+      notifyNewOrder(order.order_number, order.service_type, () => {
+        window.focus();
+        setShowAlert(true);
+      });
+    }
+  }, [permission, notifyNewOrder]);
 
   const playNotificationSound = useCallback(() => {
     try {
@@ -100,6 +112,7 @@ export function useCookNotifications() {
             });
             setShowAlert(true);
             playNotificationSound();
+            showBrowserNotification(orderDetails); // Trigger browser notification
             queryClient.invalidateQueries({ queryKey: ['cook-orders'] });
           }
         }
